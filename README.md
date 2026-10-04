@@ -136,7 +136,7 @@ Claude Code と Gemini（Antigravity）のサブエージェントを、チー�
 - **同じIDのメンバーを複数のチームに置くと、作業状態が共有されます。** 片方が動くと、両方のカードが動きます。
 - **Gemini 側の検知は会話単位です。** そのため、前に呼ばれたメンバーも、作業中に見えることがあります。
 - **揺れの表示は最短で約3秒です。** 作業中の検知はログの更新を数秒おきに読んでいるため、数秒より短い作業でも完了は検知しますが、揺れが表示される時間は最短約3秒になります。
-- 不具合を見つけたら、公開後にGitHubのIssuesで教えてください。
+- 不具合を見つけたら、[GitHub の Issues](https://github.com/SlothStudioAI/AgentDeskApp/issues) で教えてください（ベータ版です）。
 
 ---
 
@@ -183,5 +183,5 @@ MIT ライセンスです。詳しくは [LICENSE](LICENSE) を参照してく�
 - **What it is**: A Windows desktop app that manages Claude Code and Gemini (Antigravity) subagents as teams, and shows with cards who is working and who has finished.
 - **Requirements**: Windows 10/11 (64-bit). The release zip is self-contained (no .NET install needed); building from source requires the .NET 10 SDK. Detection works when `claude` or `agy` is installed.
 - **Quick start**: Download the zip, extract it, and run `AgentDeskApp.exe`. If SmartScreen appears, click "More info" then "Run anyway".
-- **Known limitations**: Members with the same ID in multiple teams share their working state; Gemini detection is per conversation; the sway animation is shown for about 3 seconds at minimum. This is a beta, so please report issues on GitHub Issues after release. The app itself makes no network connections.
+- **Known limitations**: Members with the same ID in multiple teams share their working state; Gemini detection is per conversation; the sway animation is shown for about 3 seconds at minimum. This is a beta, so please report issues on [GitHub Issues](https://github.com/SlothStudioAI/AgentDeskApp/issues). The app itself makes no network connections.
 - **License**: MIT. Unofficial tool, not affiliated with Anthropic or Google ("AS IS"). The app edits agent definitions (`.claude/agents`, `.agents/skills`) and rule files (`CLAUDE.md`, `GEMINI.md`, including `~/.claude/CLAUDE.md` and `~/.gemini/GEMINI.md`), so please back up anything important first.

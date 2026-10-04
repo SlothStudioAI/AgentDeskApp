@@ -95,6 +95,17 @@ public class SupportContentTests
         Assert.False(withUrl[1].HasLink);
     }
 
+    /// <summary>既定の定数では、連絡先はリンクあり、使い方動画(未公開)は案内文のみになる。</summary>
+    [Fact]
+    public void Build_既定の定数では連絡先のみリンクあり()
+    {
+        var links = SupportContent.Build(null, null)[^1].Links!;
+
+        Assert.False(links[0].HasLink);
+        Assert.True(links[1].HasLink);
+        Assert.Equal(SupportContent.SupportIssuesUrl, links[1].Url);
+    }
+
     /// <summary>外部コマンド一覧に、自動実行・操作時のみ・通信の区分と主要コマンドが含まれ、断定が実態と矛盾しない。</summary>
     [Fact]
     public void Build_外部コマンド一覧は自動実行と操作時のみを分けて通信の注意を含む()

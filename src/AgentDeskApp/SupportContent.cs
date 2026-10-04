@@ -51,9 +51,9 @@ public static class SupportContent
     public const string UnknownPathText = "(場所を取得できませんでした)";
 
     /// <summary>
-    /// 「困ったときは」の案内文。公開後にGitHubのIssuesのURL等が決まったら、ここだけを差し替える。
+    /// 「困ったときは」の案内文。不具合やご要望の連絡先の案内。文言を変えるときは、ここだけを差し替える。
     /// </summary>
-    public const string SupportContactText = "公開後にGitHubの Issues でご連絡ください。";
+    public const string SupportContactText = "不具合やご要望は、GitHub の Issues でお知らせください。";
 
     /// <summary>
     /// 使い方動画(YouTube)のURL。公開時にここへURLを入れる。空のままなら案内文のみを表示しリンクは出さない。
@@ -64,9 +64,9 @@ public static class SupportContent
     public const string SupportYouTubeText = "使い方は YouTube で公開予定です。";
 
     /// <summary>
-    /// 連絡先(GitHub Issues)のURL。公開時にここへURLを入れる。空のままなら案内文のみを表示しリンクは出さない。
+    /// 連絡先(GitHub Issues)のURL。空にすると案内文のみを表示しリンクは出さない。
     /// </summary>
-    public const string SupportIssuesUrl = "";
+    public const string SupportIssuesUrl = "https://github.com/SlothStudioAI/AgentDeskApp/issues";
 
     private const string YouTubeLabel = "使い方動画";
     private const string ContactLabel = "ご連絡";
