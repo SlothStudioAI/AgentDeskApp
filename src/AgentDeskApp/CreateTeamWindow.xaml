@@ -1,0 +1,69 @@
+<Window x:Class="AgentDeskApp.CreateTeamWindow"
+        xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+        xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+        Title="新しいチームの作成" Height="480" Width="520"
+        WindowStartupLocation="CenterOwner"
+        ResizeMode="NoResize"
+        Background="{DynamicResource MainBackgroundBrush}"
+        Foreground="{DynamicResource TextPrimaryBrush}"
+        FontFamily="Yu Gothic UI, Segoe UI, Meiryo">
+    <Window.Resources>
+        <ResourceDictionary>
+            <ResourceDictionary.MergedDictionaries>
+                <ResourceDictionary Source="Themes/PopupStyles.xaml"/>
+            </ResourceDictionary.MergedDictionaries>
+        </ResourceDictionary>
+    </Window.Resources>
+    <Grid Margin="24">
+        <Grid.RowDefinitions>
+            <RowDefinition Height="Auto"/>
+            <RowDefinition Height="Auto"/>
+            <RowDefinition Height="Auto"/>
+            <RowDefinition Height="Auto"/>
+            <RowDefinition Height="Auto"/>
+            <RowDefinition Height="*"/>
+            <RowDefinition Height="Auto"/>
+        </Grid.RowDefinitions>
+
+        <!-- ヘッダー説明 -->
+        <StackPanel Grid.Row="0" Margin="0,0,0,16">
+            <TextBlock Text="👥 チーム（サブプロジェクト）の作成" FontSize="16" FontWeight="Bold" Foreground="{StaticResource TextPrimaryBrush}"/>
+            <TextBlock x:Name="ParentGroupLabel" Text="親ワークスペース: （選択中のワークスペース）" FontSize="12" Foreground="{StaticResource TextMutedBrush}" Margin="0,4,0,0"/>
+        </StackPanel>
+
+        <!-- チーム名 / フォルダ名 -->
+        <StackPanel Grid.Row="1" Margin="0,0,0,14">
+            <TextBlock Text="チーム名（フォルダ名）:" FontSize="12.5" FontWeight="SemiBold" Foreground="{StaticResource TextPrimaryBrush}" Margin="0,0,0,6"/>
+            <Grid>
+                <Grid.ColumnDefinitions>
+                    <ColumnDefinition Width="*"/>
+                    <ColumnDefinition Width="Auto"/>
+                </Grid.ColumnDefinitions>
+                <TextBox x:Name="TeamNameTextBox" Padding="8,6" FontSize="13" TextChanged="TeamNameTextBox_TextChanged"/>
+                <Button Grid.Column="1" Content="📁 既存フォルダ選択" Padding="10,6" FontSize="11.5" Margin="8,0,0,0" Click="SelectFolderButton_Click"/>
+            </Grid>
+            <TextBlock x:Name="FolderPathPreviewText" Text="パス: （作成先のフォルダ）" FontSize="11" Foreground="{StaticResource TextMutedBrush}" Margin="0,4,0,0" TextTrimming="CharacterEllipsis"/>
+        </StackPanel>
+
+        <!-- チームの役割・ミッション -->
+        <StackPanel Grid.Row="2" Margin="0,0,0,14">
+            <TextBlock Text="チームの役割・ミッション（任意）:" FontSize="12.5" FontWeight="SemiBold" Foreground="{StaticResource TextPrimaryBrush}" Margin="0,0,0,6"/>
+            <TextBox x:Name="MissionTextBox" Padding="8,6" FontSize="13"/>
+        </StackPanel>
+
+        <!-- ルールファイル自動生成オプション -->
+        <Border Grid.Row="3" Background="{StaticResource PanelBackgroundBrush}" BorderBrush="{StaticResource PanelBorderBrush}" BorderThickness="1" CornerRadius="{StaticResource CornerRadiusMedium}" Padding="16,12" Margin="0,0,0,16">
+            <StackPanel>
+                <TextBlock Text="スターター設定" FontSize="12" FontWeight="Bold" Foreground="{StaticResource TextPrimaryBrush}" Margin="0,0,0,8"/>
+                <CheckBox x:Name="CreateClaudeMdCheck" Content="📄 CLAUDE.md を自動生成する（チームルール・方針）" IsChecked="True" FontSize="12" Margin="0,0,0,6"/>
+                <CheckBox x:Name="CreateGeminiMdCheck" Content="🌟 GEMINI.md を自動生成する（Antigravity連携ルール）" IsChecked="True" FontSize="12"/>
+            </StackPanel>
+        </Border>
+
+        <!-- ボタン領域 -->
+        <StackPanel Grid.Row="6" Orientation="Horizontal" HorizontalAlignment="Right">
+            <Button Content="キャンセル" Padding="16,6" Margin="0,0,10,0" FontSize="12.5" Click="CancelButton_Click"/>
+            <Button x:Name="CreateButton" Content="チームを作成" Padding="18,6" FontSize="12.5" Style="{StaticResource ForestPrimaryButtonStyle}" Click="CreateButton_Click"/>
+        </StackPanel>
+    </Grid>
+</Window>

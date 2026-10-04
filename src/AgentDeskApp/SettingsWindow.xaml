@@ -1,0 +1,116 @@
+<Window x:Class="AgentDeskApp.SettingsWindow"
+        xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+        xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+        Title="スタジオ環境設定 (Settings)" Height="600" Width="520" WindowStartupLocation="CenterOwner" ResizeMode="NoResize"
+        Background="{DynamicResource MainBackgroundBrush}"
+        Foreground="{DynamicResource TextPrimaryBrush}"
+        FontFamily="Yu Gothic UI, Segoe UI, Meiryo">
+    <Window.Resources>
+        <ResourceDictionary>
+            <ResourceDictionary.MergedDictionaries>
+                <ResourceDictionary Source="Themes/PopupStyles.xaml"/>
+            </ResourceDictionary.MergedDictionaries>
+        </ResourceDictionary>
+    </Window.Resources>
+    <DockPanel Margin="24">
+        <!-- 下部アクションボタン -->
+        <StackPanel DockPanel.Dock="Bottom" Orientation="Horizontal" HorizontalAlignment="Right" Margin="0,16,0,0">
+            <Button x:Name="CancelButton" Content="キャンセル" Padding="14,6" Margin="0,0,10,0" Click="CancelButton_Click"/>
+            <Button x:Name="SaveButton" Content="保存" Padding="18,6" Style="{StaticResource ForestPrimaryButtonStyle}" Click="SaveButton_Click"/>
+        </StackPanel>
+
+        <!-- 設定フォーム -->
+        <ScrollViewer VerticalScrollBarVisibility="Auto">
+            <StackPanel>
+                <TextBlock Text="⚙️ スタジオ環境設定" FontSize="18" FontWeight="Bold" Foreground="{StaticResource TextPrimaryBrush}" Margin="0,0,0,4"/>
+                <TextBlock Text="エージェント監視周期やCLI実行環境のパスを設定します。" FontSize="12" Foreground="{StaticResource TextMutedBrush}" Margin="0,0,0,18"/>
+
+                <!-- セクション1: 監視ポーリング周期 -->
+                <Border Background="{StaticResource PanelBackgroundBrush}" BorderBrush="{StaticResource PanelBorderBrush}" BorderThickness="1" CornerRadius="{StaticResource CornerRadiusLarge}" Padding="16" Margin="0,0,0,16">
+                    <StackPanel>
+                        <TextBlock Text="⏱️ 監視・ポーリング周期" FontSize="13.5" FontWeight="Bold" Foreground="{StaticResource TextPrimaryBrush}" Margin="0,0,0,12"/>
+
+                        <Grid Margin="0,0,0,10">
+                            <Grid.ColumnDefinitions>
+                                <ColumnDefinition Width="*"/>
+                                <ColumnDefinition Width="100"/>
+                            </Grid.ColumnDefinitions>
+                            <StackPanel VerticalAlignment="Center">
+                                <TextBlock Text="セッション更新周期 (秒)" FontSize="12.5" FontWeight="SemiBold" Foreground="{StaticResource TextPrimaryBrush}"/>
+                                <TextBlock Text="アクティブなセッション一覧を再取得する間隔" FontSize="11" Foreground="{StaticResource TextMutedBrush}"/>
+                            </StackPanel>
+                            <TextBox x:Name="SessionIntervalTextBox" Grid.Column="1" VerticalAlignment="Center" Padding="8,4" TextAlignment="Right"/>
+                        </Grid>
+
+                        <Grid>
+                            <Grid.ColumnDefinitions>
+                                <ColumnDefinition Width="*"/>
+                                <ColumnDefinition Width="100"/>
+                            </Grid.ColumnDefinitions>
+                            <StackPanel VerticalAlignment="Center">
+                                <TextBlock Text="ログ追跡周期 (秒)" FontSize="12.5" FontWeight="SemiBold" Foreground="{StaticResource TextPrimaryBrush}"/>
+                                <TextBlock Text="実行中セッションの会話ログ差分を追跡する間隔" FontSize="11" Foreground="{StaticResource TextMutedBrush}"/>
+                            </StackPanel>
+                            <TextBox x:Name="LogIntervalTextBox" Grid.Column="1" VerticalAlignment="Center" Padding="8,4" TextAlignment="Right"/>
+                        </Grid>
+                    </StackPanel>
+                </Border>
+
+                <!-- セクション: 完了通知 -->
+                <Border Background="{StaticResource PanelBackgroundBrush}" BorderBrush="{StaticResource PanelBorderBrush}" BorderThickness="1" CornerRadius="{StaticResource CornerRadiusLarge}" Padding="16" Margin="0,0,0,16">
+                    <StackPanel>
+                        <TextBlock Text="🔔 完了通知" FontSize="13.5" FontWeight="Bold" Foreground="{StaticResource TextPrimaryBrush}" Margin="0,0,0,4"/>
+                        <TextBlock Text="メンバーの作業中・作業が終わったときの知らせ方を選べます。完了したカードは、クリックするまで光り続けます。" FontSize="11" Foreground="{StaticResource TextMutedBrush}" TextWrapping="Wrap" Margin="0,0,0,10"/>
+                        <CheckBox x:Name="RunningSwayCheckBox" Content="🌀 作業中のメンバーのアバターをゆらゆら揺らす" FontSize="12.5" Margin="0,0,0,8"/>
+                        <CheckBox x:Name="CompletionSoundCheckBox" Content="🔊 完了音を鳴らす" FontSize="12.5" Margin="0,0,0,2"/>
+                        <TextBlock Text="音ファイル(WAV)は設定ファイルの CompletionSoundPath で指定できます(未指定ならWindows標準の通知音)" FontSize="11" Foreground="{StaticResource TextMutedBrush}" TextWrapping="Wrap" Margin="20,0,0,8"/>
+                        <CheckBox x:Name="AvatarBounceCheckBox" Content="✨ 完了したときにアバターを「ぷるん」と動かす" FontSize="12.5" Margin="0,0,0,8"/>
+                        <CheckBox x:Name="TaskbarFlashCheckBox" Content="📌 アプリが前面にないとき、タスクバーのアイコンを点滅させる" FontSize="12.5"/>
+                    </StackPanel>
+                </Border>
+
+                <!-- セクション2: CLI実行環境 -->
+                <Border Background="{StaticResource PanelBackgroundBrush}" BorderBrush="{StaticResource PanelBorderBrush}" BorderThickness="1" CornerRadius="{StaticResource CornerRadiusLarge}" Padding="16" Margin="0,0,0,16">
+                    <StackPanel>
+                        <TextBlock Text="💻 CLI 実行環境設定" FontSize="13.5" FontWeight="Bold" Foreground="{StaticResource TextPrimaryBrush}" Margin="0,0,0,12"/>
+
+                        <StackPanel Margin="0,0,0,12">
+                            <TextBlock Text="Claude CLI コマンド/パス (自動検出)" FontSize="12.5" FontWeight="SemiBold" Foreground="{StaticResource TextPrimaryBrush}"/>
+                            <TextBlock Text="PATH解決→標準インストール場所の順で自動探索されます (U-26)" FontSize="11" Foreground="{StaticResource TextMutedBrush}" Margin="0,0,0,4"/>
+                            <Grid>
+                                <Grid.ColumnDefinitions>
+                                    <ColumnDefinition Width="*"/>
+                                    <ColumnDefinition Width="Auto"/>
+                                </Grid.ColumnDefinitions>
+                                <TextBox x:Name="ClaudeCliTextBox" Grid.Column="0" Padding="8,5" IsReadOnly="True" Background="{StaticResource PanelInsetBrush}" Foreground="{StaticResource TextPrimaryBrush}" LostFocus="ClaudeCliTextBox_LostFocus"/>
+                                <Button x:Name="RefreshClaudeCliButton" Grid.Column="1" Content="🔄 再探索" Margin="8,0,0,0" Padding="10,5" Click="RefreshClaudeCliButton_Click"/>
+                            </Grid>
+                            <TextBlock x:Name="ClaudeCliStatusText" FontSize="11" Margin="0,5,0,0" Foreground="{StaticResource TextMutedBrush}" Text="🔍 確認中..."/>
+                            <CheckBox x:Name="ClaudeCliManualOverrideCheckBox" Content="✏️ 手動で指定する" FontSize="11" Margin="0,6,0,0"
+                                      Checked="ClaudeCliManualOverrideCheckBox_Changed" Unchecked="ClaudeCliManualOverrideCheckBox_Changed"/>
+                        </StackPanel>
+
+                        <StackPanel>
+                            <TextBlock Text="Gemini (Antigravity) CLI コマンド/パス (自動検出)" FontSize="12.5" FontWeight="SemiBold" Foreground="{StaticResource TextPrimaryBrush}"/>
+                            <TextBlock Text="PATH解決→標準インストール場所の順で自動探索されます (U-26)" FontSize="11" Foreground="{StaticResource TextMutedBrush}" Margin="0,0,0,4"/>
+                            <Grid>
+                                <Grid.ColumnDefinitions>
+                                    <ColumnDefinition Width="*"/>
+                                    <ColumnDefinition Width="Auto"/>
+                                </Grid.ColumnDefinitions>
+                                <TextBox x:Name="GeminiCliTextBox" Grid.Column="0" Padding="8,5" IsReadOnly="True" Background="{StaticResource PanelInsetBrush}" Foreground="{StaticResource TextPrimaryBrush}" LostFocus="GeminiCliTextBox_LostFocus"/>
+                                <Button x:Name="RefreshGeminiCliButton" Grid.Column="1" Content="🔄 再探索" Margin="8,0,0,0" Padding="10,5" Click="RefreshGeminiCliButton_Click"/>
+                            </Grid>
+                            <TextBlock x:Name="GeminiCliStatusText" FontSize="11" Margin="0,5,0,0" Foreground="{StaticResource TextMutedBrush}" Text="🔍 確認中..."/>
+                            <CheckBox x:Name="GeminiCliManualOverrideCheckBox" Content="✏️ 手動で指定する" FontSize="11" Margin="0,6,0,0"
+                                      Checked="GeminiCliManualOverrideCheckBox_Changed" Unchecked="GeminiCliManualOverrideCheckBox_Changed"/>
+                        </StackPanel>
+                    </StackPanel>
+                </Border>
+
+                <!-- 設定ファイルパス -->
+                <TextBlock x:Name="FilePathNoticeText" FontSize="10.5" Foreground="{StaticResource TextMutedBrush}" TextWrapping="Wrap"/>
+            </StackPanel>
+        </ScrollViewer>
+    </DockPanel>
+</Window>

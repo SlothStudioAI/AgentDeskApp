@@ -1,0 +1,13 @@
+bin/
+obj/
+.vs/
+*.user
+*.suo
+*.log
+artifacts/
+release/
+.claude/settings.local.json
+# アプリ設定の実ファイル（リポジトリ直下のみ）
+/settings.json
+# 手元の画像素材置き場（ルート直下のみ。Assets/Avatars の同梱画像は対象外）
+/avatars/

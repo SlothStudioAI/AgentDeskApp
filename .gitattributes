@@ -1,0 +1,22 @@
+# 改行コードの方針: リポジトリ内はLF。テキストは自動判定し、取得時の変換は各環境の設定に任せる
+* text=auto
+
+# ソース・ドキュメント
+*.cs text
+*.xaml text
+*.md text
+*.json text
+*.csproj text
+*.gitignore text
+
+# Windows向けの推奨改行(CRLF)で取得する
+*.ps1 text eol=crlf
+*.sln text eol=crlf
+
+# バイナリ
+*.jpg binary
+*.jpeg binary
+*.png binary
+*.ico binary
+*.wav binary
+*.zip binary

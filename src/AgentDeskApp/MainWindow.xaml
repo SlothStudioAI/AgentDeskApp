@@ -1,0 +1,598 @@
+﻿<Window x:Class="AgentDeskApp.MainWindow"
+        xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+        xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+        xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
+        xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
+        xmlns:local="clr-namespace:AgentDeskApp"
+        mc:Ignorable="d"
+        Title="Sloth Studio — AI Subagent Desk" Height="900" Width="1360"
+        Icon="Assets/app.ico"
+        Background="#0F172A"
+        FontFamily="Yu Gothic UI, Segoe UI, Meiryo"
+        UseLayoutRounding="True"
+        SnapsToDevicePixels="True"
+        TextOptions.TextFormattingMode="Display"
+        TextOptions.TextRenderingMode="ClearType"
+        KeyDown="Window_KeyDown">
+
+    <!-- カスタムタイトルバー用のWindowChrome。CaptionHeightはタイトルバー高さ(TitleBarHeight)と同じ値にそろえる。
+         ResizeBorderThickness=端のドラッグリサイズ幅、GlassFrameThickness=0で標準枠を消す。 -->
+    <WindowChrome.WindowChrome>
+        <WindowChrome CaptionHeight="38" ResizeBorderThickness="6" GlassFrameThickness="0" CornerRadius="0" UseAeroCaptionButtons="False"/>
+    </WindowChrome.WindowChrome>
+
+    <Window.Resources>
+        <!-- 配色ブラシ・角丸・スクロールバー・ツールチップ・メニューのスタイルは Themes/ForestTheme.xaml(App.xaml で読み込み)に移動した -->
+
+        <!-- Git境界警告「ⓘ」アイコン(落ち着いた水色系。背景薄黄色・緑/茶色帯に調和) -->
+        <SolidColorBrush x:Key="GitInfoPopupBackgroundBrush" Color="#F0F9FF"/>
+        <SolidColorBrush x:Key="GitInfoPopupBorderBrush" Color="#BAE6FD"/>
+        <SolidColorBrush x:Key="GitInfoPopupTitleBrush" Color="#0369A1"/>
+        <SolidColorBrush x:Key="GitInfoPopupBodyBrush" Color="#0284C7"/>
+
+        <!-- タイトルバーのキャプションボタン(最小化/最大化/閉じる)共通スタイル。ホバー色はTagで切替える -->
+        <Style x:Key="TitleBarCaptionButton" TargetType="Button">
+            <Setter Property="Foreground" Value="{StaticResource TitleBarButtonForegroundBrush}"/>
+            <Setter Property="Width" Value="46"/>
+            <Setter Property="Focusable" Value="False"/>
+            <Setter Property="WindowChrome.IsHitTestVisibleInChrome" Value="True"/>
+            <Setter Property="Template">
+                <Setter.Value>
+                    <ControlTemplate TargetType="Button">
+                        <Border x:Name="border" Background="Transparent" CornerRadius="{StaticResource CornerRadiusSmall}" Margin="2,5">
+                            <ContentPresenter HorizontalAlignment="Center" VerticalAlignment="Center"/>
+                        </Border>
+                        <ControlTemplate.Triggers>
+                            <Trigger Property="IsMouseOver" Value="True">
+                                <Setter TargetName="border" Property="Background" Value="{StaticResource TitleBarButtonHoverBrush}"/>
+                                <Setter Property="Foreground" Value="#FFFFFF"/>
+                            </Trigger>
+                            <Trigger Property="IsPressed" Value="True">
+                                <Setter TargetName="border" Property="Background" Value="{StaticResource TitleBarButtonPressedBrush}"/>
+                            </Trigger>
+                        </ControlTemplate.Triggers>
+                    </ControlTemplate>
+                </Setter.Value>
+            </Setter>
+        </Style>
+        <!-- 閉じるボタン: ホバーで赤系 -->
+        <Style x:Key="TitleBarCloseButton" TargetType="Button" BasedOn="{StaticResource TitleBarCaptionButton}">
+            <Setter Property="Template">
+                <Setter.Value>
+                    <ControlTemplate TargetType="Button">
+                        <Border x:Name="border" Background="Transparent" CornerRadius="{StaticResource CornerRadiusSmall}" Margin="2,5">
+                            <ContentPresenter HorizontalAlignment="Center" VerticalAlignment="Center"/>
+                        </Border>
+                        <ControlTemplate.Triggers>
+                            <Trigger Property="IsMouseOver" Value="True">
+                                <Setter TargetName="border" Property="Background" Value="{StaticResource TitleBarCloseHoverBrush}"/>
+                                <Setter Property="Foreground" Value="#FFFFFF"/>
+                            </Trigger>
+                            <Trigger Property="IsPressed" Value="True">
+                                <Setter TargetName="border" Property="Background" Value="{StaticResource TitleBarClosePressedBrush}"/>
+                            </Trigger>
+                        </ControlTemplate.Triggers>
+                    </ControlTemplate>
+                </Setter.Value>
+            </Setter>
+        </Style>
+        <!-- サイドバーナビゲーションアイテムボタン -->
+        <Style x:Key="SidebarNavButton" TargetType="Button">
+            <Setter Property="Background" Value="Transparent"/>
+            <Setter Property="Foreground" Value="{StaticResource SidebarTextBrush}"/>
+            <Setter Property="FontSize" Value="13"/>
+            <Setter Property="FontWeight" Value="SemiBold"/>
+            <Setter Property="Padding" Value="12,9"/>
+            <Setter Property="HorizontalContentAlignment" Value="Left"/>
+            <Setter Property="Cursor" Value="Hand"/>
+            <Setter Property="BorderThickness" Value="0"/>
+            <Setter Property="Template">
+                <Setter.Value>
+                    <ControlTemplate TargetType="Button">
+                        <Border x:Name="border" Background="{TemplateBinding Background}" CornerRadius="{StaticResource CornerRadiusMedium}" Padding="{TemplateBinding Padding}">
+                            <ContentPresenter HorizontalAlignment="{TemplateBinding HorizontalContentAlignment}" VerticalAlignment="Center"/>
+                        </Border>
+                        <ControlTemplate.Triggers>
+                            <Trigger Property="IsMouseOver" Value="True">
+                                <Setter TargetName="border" Property="Background" Value="{StaticResource SidebarHoverBrush}"/>
+                                <Setter Property="Foreground" Value="#F8FAFC"/>
+                            </Trigger>
+                            <Trigger Property="Tag" Value="Selected">
+                                <Setter TargetName="border" Property="Background" Value="{StaticResource SidebarSelectedBrush}"/>
+                                <Setter Property="Foreground" Value="#FFFFFF"/>
+                                <Setter Property="FontWeight" Value="Bold"/>
+                            </Trigger>
+                        </ControlTemplate.Triggers>
+                    </ControlTemplate>
+                </Setter.Value>
+            </Setter>
+        </Style>
+
+        <!-- サイドバー内の小さなアイコン「＋」ボタン -->
+        <Style x:Key="SidebarIconButton" TargetType="Button">
+            <Setter Property="Background" Value="Transparent"/>
+            <Setter Property="Foreground" Value="{StaticResource SidebarMutedTextBrush}"/>
+            <Setter Property="Width" Value="24"/>
+            <Setter Property="Height" Value="24"/>
+            <Setter Property="Cursor" Value="Hand"/>
+            <Setter Property="BorderThickness" Value="0"/>
+            <Setter Property="Template">
+                <Setter.Value>
+                    <ControlTemplate TargetType="Button">
+                        <Border x:Name="border" Background="{TemplateBinding Background}" CornerRadius="{StaticResource CornerRadiusSmall}">
+                            <ContentPresenter HorizontalAlignment="Center" VerticalAlignment="Center"/>
+                        </Border>
+                        <ControlTemplate.Triggers>
+                            <Trigger Property="IsMouseOver" Value="True">
+                                <Setter TargetName="border" Property="Background" Value="{StaticResource SidebarHoverBrush}"/>
+                                <Setter Property="Foreground" Value="#FFFFFF"/>
+                            </Trigger>
+                        </ControlTemplate.Triggers>
+                    </ControlTemplate>
+                </Setter.Value>
+            </Setter>
+        </Style>
+
+        <!-- 上部ヘッダーの白いスタジオボタンスタイル (View Rulesなど) -->
+        <Style x:Key="StudioHeaderButton" TargetType="Button">
+            <Setter Property="Background" Value="#FFFFFF"/>
+            <Setter Property="Foreground" Value="#0F172A"/>
+            <Setter Property="BorderBrush" Value="#0F172A"/>
+            <Setter Property="BorderThickness" Value="1.5"/>
+            <Setter Property="FontWeight" Value="Bold"/>
+            <Setter Property="FontSize" Value="12.5"/>
+            <Setter Property="Padding" Value="16,7"/>
+            <Setter Property="Cursor" Value="Hand"/>
+            <Setter Property="Template">
+                <Setter.Value>
+                    <ControlTemplate TargetType="Button">
+                        <Border x:Name="btnBorder" Background="{TemplateBinding Background}" BorderBrush="{TemplateBinding BorderBrush}" BorderThickness="{TemplateBinding BorderThickness}" CornerRadius="{StaticResource CornerRadiusMedium}" Padding="{TemplateBinding Padding}">
+                            <ContentPresenter HorizontalAlignment="Center" VerticalAlignment="Center"/>
+                        </Border>
+                        <ControlTemplate.Triggers>
+                            <Trigger Property="IsMouseOver" Value="True">
+                                <Setter TargetName="btnBorder" Property="Background" Value="#F8FAFC"/>
+                            </Trigger>
+                            <Trigger Property="IsPressed" Value="True">
+                                <Setter TargetName="btnBorder" Property="Background" Value="#F1F5F9"/>
+                            </Trigger>
+                            <Trigger Property="IsEnabled" Value="False">
+                                <Setter TargetName="btnBorder" Property="BorderBrush" Value="#CBD5E1"/>
+                                <Setter Property="Foreground" Value="#94A3B8"/>
+                            </Trigger>
+                        </ControlTemplate.Triggers>
+                    </ControlTemplate>
+                </Setter.Value>
+            </Setter>
+        </Style>
+
+        <!-- 初回起動時ウェルカム案内のアクションボタンスタイル -->
+        <Style x:Key="WelcomeActionButton" TargetType="Button">
+            <Setter Property="Background" Value="#2563EB"/>
+            <Setter Property="Foreground" Value="White"/>
+            <Setter Property="FontWeight" Value="SemiBold"/>
+            <Setter Property="FontSize" Value="13"/>
+            <Setter Property="Padding" Value="18,10"/>
+            <Setter Property="BorderThickness" Value="0"/>
+            <Setter Property="Cursor" Value="Hand"/>
+            <Setter Property="Template">
+                <Setter.Value>
+                    <ControlTemplate TargetType="Button">
+                        <Border x:Name="btnBorder" Background="{TemplateBinding Background}" CornerRadius="{StaticResource CornerRadiusMedium}" Padding="{TemplateBinding Padding}">
+                            <ContentPresenter HorizontalAlignment="Center" VerticalAlignment="Center"/>
+                        </Border>
+                        <ControlTemplate.Triggers>
+                            <Trigger Property="IsMouseOver" Value="True">
+                                <Setter TargetName="btnBorder" Property="Background" Value="#1D4ED8"/>
+                            </Trigger>
+                            <Trigger Property="IsPressed" Value="True">
+                                <Setter TargetName="btnBorder" Property="Background" Value="#1E40AF"/>
+                            </Trigger>
+                        </ControlTemplate.Triggers>
+                    </ControlTemplate>
+                </Setter.Value>
+            </Setter>
+        </Style>
+
+        <!-- エンジンフィルターピルのスタイル (All / Claude / Gemini) -->
+        <Style x:Key="EngineFilterRadioStyle" TargetType="RadioButton">
+            <Setter Property="Background" Value="Transparent"/>
+            <Setter Property="Foreground" Value="#64748B"/>
+            <Setter Property="FontSize" Value="12"/>
+            <Setter Property="FontWeight" Value="SemiBold"/>
+            <Setter Property="Padding" Value="10,5"/>
+            <Setter Property="Cursor" Value="Hand"/>
+            <Setter Property="Template">
+                <Setter.Value>
+                    <ControlTemplate TargetType="RadioButton">
+                        <Border x:Name="pillBorder" Background="{TemplateBinding Background}" CornerRadius="8" Padding="{TemplateBinding Padding}">
+                            <ContentPresenter HorizontalAlignment="Center" VerticalAlignment="Center"/>
+                        </Border>
+                        <ControlTemplate.Triggers>
+                            <Trigger Property="IsChecked" Value="True">
+                                <Setter TargetName="pillBorder" Property="Background" Value="#FFFFFF"/>
+                                <Setter Property="Foreground" Value="#0F172A"/>
+                                <Setter Property="FontWeight" Value="Bold"/>
+                            </Trigger>
+                            <Trigger Property="IsMouseOver" Value="True">
+                                <Setter Property="Foreground" Value="#0F172A"/>
+                            </Trigger>
+                        </ControlTemplate.Triggers>
+                    </ControlTemplate>
+                </Setter.Value>
+            </Setter>
+        </Style>
+
+    </Window.Resources>
+
+    <!-- 最外枠: 最大化時に画面外へはみ出す分を、コードビハインド(StateChanged)でこのBorderのPaddingとして補正する -->
+    <Border x:Name="WindowRootBorder" Background="{StaticResource SidebarBackgroundBrush}">
+    <Grid>
+        <Grid.RowDefinitions>
+            <RowDefinition Height="{StaticResource TitleBarHeight}"/>
+            <RowDefinition Height="*"/>
+        </Grid.RowDefinitions>
+
+        <!-- ============================================== -->
+        <!-- 上段: カスタムタイトルバー(サイドバーの緑とつながる緑系)。ドラッグ移動・ダブルクリック最大化はWindowChromeが処理 -->
+        <!-- ============================================== -->
+        <Border Grid.Row="0" Background="{StaticResource SidebarBackgroundBrush}" BorderBrush="{StaticResource TitleBarBorderBrush}" BorderThickness="0,0,0,1">
+            <DockPanel LastChildFill="True">
+                <!-- 右: キャプションボタン(最小化 / 最大化・復元 / 閉じる) -->
+                <StackPanel DockPanel.Dock="Right" Orientation="Horizontal">
+                    <Button x:Name="TitleBarMinimizeButton" Style="{StaticResource TitleBarCaptionButton}" ToolTip="最小化" Click="TitleBarMinimizeButton_Click">
+                        <Path Data="M0,0 L10,0" Stroke="{Binding Foreground, RelativeSource={RelativeSource AncestorType=Button}}" StrokeThickness="1" Margin="0,6,0,0"/>
+                    </Button>
+                    <Button x:Name="TitleBarMaximizeButton" Style="{StaticResource TitleBarCaptionButton}" ToolTip="最大化" Click="TitleBarMaximizeButton_Click">
+                        <Path x:Name="TitleBarMaximizeIcon" Data="M0,0 L10,0 L10,10 L0,10 Z" Stroke="{Binding Foreground, RelativeSource={RelativeSource AncestorType=Button}}" StrokeThickness="1"/>
+                    </Button>
+                    <Button x:Name="TitleBarCloseButton" Style="{StaticResource TitleBarCloseButton}" ToolTip="閉じる" Click="TitleBarCloseButton_Click">
+                        <Path Data="M0,0 L10,10 M10,0 L0,10" Stroke="{Binding Foreground, RelativeSource={RelativeSource AncestorType=Button}}" StrokeThickness="1"/>
+                    </Button>
+                </StackPanel>
+
+                <!-- 左: 小さなロゴ丸 ＋ タイトル文字 -->
+                <StackPanel Orientation="Horizontal" VerticalAlignment="Center" Margin="12,0,0,0">
+                    <Border x:Name="TitleBarLogoBorder" Width="22" Height="22" CornerRadius="11" Background="{StaticResource SidebarLogoBrush}" Margin="0,0,10,0"/>
+                    <TextBlock Text="{Binding Title, RelativeSource={RelativeSource AncestorType=Window}}" FontSize="12.5" FontWeight="SemiBold" Foreground="{StaticResource TitleBarTextBrush}" VerticalAlignment="Center"/>
+                </StackPanel>
+            </DockPanel>
+        </Border>
+
+        <!-- 下段: 既存のサイドバー＋メイン領域 -->
+        <Grid Grid.Row="1">
+        <Grid.ColumnDefinitions>
+            <!-- 左サイドバー (幅260px) -->
+            <ColumnDefinition Width="260"/>
+            <!-- 右メインキャンバス (*) -->
+            <ColumnDefinition Width="*"/>
+        </Grid.ColumnDefinitions>
+
+        <!-- ============================================== -->
+        <!-- 左カラム: A案モックアップ完全再現ダークサイドバー -->
+        <!-- ============================================== -->
+        <Border Grid.Column="0" Background="{StaticResource SidebarBackgroundBrush}" BorderBrush="{StaticResource SidebarBorderBrush}" BorderThickness="0,0,1,0">
+            <DockPanel LastChildFill="True">
+                <!-- 1. ブランドロゴエリア -->
+                <Border DockPanel.Dock="Top" Padding="20,22,16,18">
+                    <StackPanel Orientation="Horizontal" VerticalAlignment="Center">
+                        <!-- まん丸なまけものアバター -->
+                        <Border x:Name="SidebarLogoBorder" Width="40" Height="40" CornerRadius="20" Background="{StaticResource SidebarLogoBrush}" Margin="0,0,12,0"/>
+                        <StackPanel VerticalAlignment="Center">
+                            <TextBlock Text="Sloth Studio" FontSize="16.5" FontWeight="Bold" Foreground="#FFFFFF"/>
+                            <TextBlock Text="AI Subagent Desk" FontSize="11" Foreground="{StaticResource SidebarMutedTextBrush}"/>
+                        </StackPanel>
+                    </StackPanel>
+                </Border>
+
+                <!-- 2. 最下部フッターナビ (Settings / Support) -->
+                <Border DockPanel.Dock="Bottom" Padding="16,12" BorderBrush="{StaticResource SidebarBorderBrush}" BorderThickness="0,1,0,0">
+                    <StackPanel>
+                        <Button Style="{StaticResource SidebarNavButton}" Padding="10,6" Margin="0,0,0,2" Click="SettingsButton_Click">
+                            <StackPanel Orientation="Horizontal">
+                                <TextBlock Text="⚙️" Margin="0,0,8,0" FontSize="13"/>
+                                <TextBlock Text="Settings" FontSize="12.5"/>
+                            </StackPanel>
+                        </Button>
+                        <Button Style="{StaticResource SidebarNavButton}" Padding="10,6" Click="SupportButton_Click">
+                            <StackPanel Orientation="Horizontal">
+                                <TextBlock Text="❓" Margin="0,0,8,0" FontSize="13"/>
+                                <TextBlock Text="Support" FontSize="12.5"/>
+                            </StackPanel>
+                        </Button>
+                    </StackPanel>
+                </Border>
+
+                <!-- 3. サイドバーツリー・ナビゲーション -->
+                <ScrollViewer VerticalScrollBarVisibility="Auto" HorizontalScrollBarVisibility="Disabled" Padding="12,10,12,10">
+                    <StackPanel>
+                        <!-- 組織・部セクション -->
+                        <Grid Margin="6,4,4,6">
+                            <TextBlock Text="GLOBAL DEPT." FontSize="10.5" FontWeight="Bold" Foreground="{StaticResource SidebarMutedTextBrush}" VerticalAlignment="Center"/>
+                        </Grid>
+                        <Button x:Name="DepartmentNavButton" Style="{StaticResource SidebarNavButton}" Margin="0,0,0,14" Click="DepartmentNavButton_Click">
+                            <StackPanel Orientation="Horizontal">
+                                <TextBlock Text="⊞" Margin="0,0,10,0" FontSize="14" FontWeight="Bold" Foreground="{StaticResource SidebarAccentBrush}"/>
+                                <TextBlock x:Name="SidebarDepartmentNameText" Text="Dashboard" VerticalAlignment="Center"/>
+                            </StackPanel>
+                        </Button>
+
+                        <!-- ワークスペース（グループ）セクション -->
+                        <Grid Margin="6,0,4,6">
+                            <TextBlock Text="WORKSPACES" FontSize="10.5" FontWeight="Bold" Foreground="{StaticResource SidebarMutedTextBrush}" VerticalAlignment="Center"/>
+                            <Button Style="{StaticResource SidebarIconButton}" HorizontalAlignment="Right" ToolTip="新しいワークスペース（作業フォルダ）を登録" Click="AddGroupButton_Click">
+                                <TextBlock Text="＋" FontSize="13" FontWeight="Bold"/>
+                            </Button>
+                        </Grid>
+
+                        <!-- ワークスペース＆チームのツリーリスト -->
+                        <StackPanel x:Name="WorkspaceTreePanel"/>
+                    </StackPanel>
+                </ScrollViewer>
+            </DockPanel>
+        </Border>
+
+        <!-- ============================================== -->
+        <!-- 右カラム: A案モックアップ完全再現メインキャンバス -->
+        <!-- ============================================== -->
+        <Border Grid.Column="1" Background="{StaticResource MainBackgroundBrush}">
+            <DockPanel LastChildFill="True">
+                <!-- 1. トップナビゲーションバー（パンくず、検索バー、通知ベル、ルールボタン、ユーザー） -->
+                <!-- G-8: DockPanelでパンくず(左)＋コントロール群(右・最終フィル子)を構成し、
+                     ウィンドウ幅が縮小した際はWrapPanelが残り幅に応じて自動的に折り返す。 -->
+                <Border DockPanel.Dock="Top" Background="{StaticResource PanelBackgroundBrush}" BorderBrush="{StaticResource PanelBorderBrush}" BorderThickness="0,0,0,1" Padding="32,16,32,16">
+                    <DockPanel LastChildFill="True">
+                        <!-- パンくずナビゲーション -->
+                        <StackPanel DockPanel.Dock="Left" Orientation="Horizontal" VerticalAlignment="Center" Margin="0,0,20,4">
+                            <TextBlock Text="Home" FontSize="13" FontWeight="SemiBold" Foreground="#64748B"/>
+                            <TextBlock Text=" / " FontSize="13" Foreground="#CBD5E1" Margin="8,0"/>
+                            <TextBlock x:Name="BreadcrumbCategoryText" Text="Design Team" FontSize="13" FontWeight="SemiBold" Foreground="#64748B" MaxWidth="160" TextTrimming="CharacterEllipsis"/>
+                            <TextBlock Text=" / " FontSize="13" Foreground="#CBD5E1" Margin="8,0"/>
+                            <TextBlock x:Name="BreadcrumbTargetText" Text="Subagents" FontSize="14" FontWeight="Bold" Foreground="#0F172A" MaxWidth="200" TextTrimming="CharacterEllipsis"/>
+                        </StackPanel>
+
+                        <!-- 右側コントロール群 (DockPanelの残り幅いっぱいに広がるWrapPanel: 収まらない分は次の行へ折り返す) -->
+                        <WrapPanel HorizontalAlignment="Right" VerticalAlignment="Center">
+                            <!-- エンジンフィルターピル [ All ] [ 🦥 Claude ] [ 🌟 Gemini ] -->
+                            <Border Background="#F1F5F9" CornerRadius="10" Padding="3" Margin="0,0,14,4">
+                                <StackPanel Orientation="Horizontal">
+                                    <RadioButton x:Name="FilterAllRadio" GroupName="EngineFilter" Content="All" IsChecked="True" Style="{StaticResource EngineFilterRadioStyle}" Click="EngineFilter_Click"/>
+                                    <RadioButton x:Name="FilterClaudeRadio" GroupName="EngineFilter" Content="🦥 Claude" Style="{StaticResource EngineFilterRadioStyle}" Click="EngineFilter_Click"/>
+                                    <RadioButton x:Name="FilterGeminiRadio" GroupName="EngineFilter" Content="🌟 Gemini" Style="{StaticResource EngineFilterRadioStyle}" Click="EngineFilter_Click"/>
+                                </StackPanel>
+                            </Border>
+
+                            <!-- 検索バー -->
+                            <Border Background="#F1F5F9" CornerRadius="10" Padding="12,6" Margin="0,0,16,4" Width="220">
+                                <Grid VerticalAlignment="Center">
+                                    <StackPanel Orientation="Horizontal" VerticalAlignment="Center">
+                                        <TextBlock Text="🔍" FontSize="11" Foreground="#94A3B8" Margin="0,0,8,0"/>
+                                        <TextBox x:Name="AgentSearchBox" BorderThickness="0" Background="Transparent" Foreground="#0F172A" FontSize="12.5" Width="170" VerticalAlignment="Center" TextChanged="AgentSearchBox_TextChanged" PreviewKeyDown="AgentSearchBox_PreviewKeyDown"/>
+                                    </StackPanel>
+                                    <TextBlock x:Name="AgentSearchPlaceholder" Text="Search Agents... (Ctrl+K)" FontSize="12" Foreground="#94A3B8" Margin="24,0,0,0" IsHitTestVisible="False" VerticalAlignment="Center"/>
+                                </Grid>
+                            </Border>
+
+                            <!-- 通知ベル -->
+                            <Border x:Name="NotificationBellBorder" Width="34" Height="34" CornerRadius="17" Background="#F8FAFC" BorderBrush="#E2E8F0" BorderThickness="1" Margin="0,0,16,4" Cursor="Hand" MouseLeftButtonUp="NotificationBell_Click">
+                                <Grid HorizontalAlignment="Center" VerticalAlignment="Center">
+                                    <TextBlock Text="🔔" FontSize="13" HorizontalAlignment="Center" VerticalAlignment="Center"/>
+                                    <!-- 未読赤バッジ -->
+                                    <Border x:Name="NotificationBadgeBorder" Width="8" Height="8" CornerRadius="4" Background="#EF4444" HorizontalAlignment="Right" VerticalAlignment="Top" Margin="8,-4,-4,0" Visibility="Collapsed"/>
+                                </Grid>
+                            </Border>
+
+                            <!-- 手動更新ボタン (F-1): 外部変更を即時に反映させる -->
+                            <Button x:Name="ManualRefreshButton" Content="🔄 更新" ToolTip="外部での変更（ファイル追加・編集・削除）を今すぐ反映 (F5)" Style="{StaticResource StudioHeaderButton}" Margin="0,0,10,4" Click="ManualRefreshButton_Click"/>
+
+                            <!-- スクショボタン (U-12) -->
+                            <Button x:Name="ScreenCaptureButton" Content="📸 スクショ" ToolTip="Windowsの切り取り＆スケッチを起動 (ms-screenclip:)" Style="{StaticResource StudioHeaderButton}" Margin="0,0,10,4" Click="ScreenCaptureButton_Click"/>
+
+                            <!-- ルールボタン (グローバル固定) -->
+                            <Button x:Name="ScopeRuleButton" Content="🌐 グローバルルール" Style="{StaticResource StudioHeaderButton}" Margin="0,0,0,4" Click="ScopeRuleButton_Click"/>
+                        </WrapPanel>
+                    </DockPanel>
+                </Border>
+
+                <!-- 2. メインコンテンツ領域（スクロール可能） -->
+                <ScrollViewer VerticalScrollBarVisibility="Auto" HorizontalScrollBarVisibility="Disabled" Padding="32,24,32,32">
+                    <StackPanel>
+                        <!-- CLI未導入案内バナー (U-13): Claude Code / Gemini(Antigravity)CLI「agy」のどちらも検出できない場合のみ表示 -->
+                        <Border x:Name="NoCliDetectedWarningBorder" Background="#FFFBEB" BorderBrush="#FDE68A" BorderThickness="1" CornerRadius="{StaticResource CornerRadiusMedium}" Padding="14,10" Margin="0,0,0,16" Visibility="Collapsed">
+                            <StackPanel Orientation="Horizontal">
+                                <TextBlock Text="⚠️" FontSize="14" Margin="0,0,10,0" VerticalAlignment="Center"/>
+                                <StackPanel>
+                                    <TextBlock Text="Claude Code または Gemini (Antigravity) CLI「agy」が見つかりませんでした" FontSize="12" FontWeight="SemiBold" Foreground="#92400E"/>
+                                    <TextBlock Text="AIエージェントを実行するには、いずれかのCLIをインストールしてください。" FontSize="11" Foreground="#92400E" TextWrapping="Wrap" Margin="0,2,0,6"/>
+                                    <Button x:Name="OpenCliInstallDocsButton" Content="📖 公式インストール手順を開く" HorizontalAlignment="Left" Click="OpenCliInstallDocsButton_Click" Cursor="Hand">
+                                        <Button.Style>
+                                            <Style TargetType="Button">
+                                                <Setter Property="Background" Value="#B45309"/>
+                                                <Setter Property="Foreground" Value="White"/>
+                                                <Setter Property="FontSize" Value="11"/>
+                                                <Setter Property="FontWeight" Value="SemiBold"/>
+                                                <Setter Property="Padding" Value="12,5"/>
+                                                <Setter Property="Template">
+                                                    <Setter.Value>
+                                                        <ControlTemplate TargetType="Button">
+                                                            <Border x:Name="btnBorder" Background="{TemplateBinding Background}" CornerRadius="{StaticResource CornerRadiusMedium}" Padding="{TemplateBinding Padding}">
+                                                                <ContentPresenter HorizontalAlignment="Center" VerticalAlignment="Center"/>
+                                                            </Border>
+                                                            <ControlTemplate.Triggers>
+                                                                <Trigger Property="IsMouseOver" Value="True">
+                                                                    <Setter TargetName="btnBorder" Property="Background" Value="#92400E"/>
+                                                                </Trigger>
+                                                                <Trigger Property="IsPressed" Value="True">
+                                                                    <Setter TargetName="btnBorder" Property="Background" Value="#78350F"/>
+                                                                </Trigger>
+                                                            </ControlTemplate.Triggers>
+                                                        </ControlTemplate>
+                                                    </Setter.Value>
+                                                </Setter>
+                                            </Style>
+                                        </Button.Style>
+                                    </Button>
+                                </StackPanel>
+                            </StackPanel>
+                        </Border>
+
+                        <!-- Git境界の警告(U-5)は、TEAMパネル内のボタン下のインライン警告枠(GitIsolationInfoBox)に移した -->
+
+                        <!-- 同名メンバー警告 (BUG-18): Id/呼び名が重複する既存データがある場合のみ表示 -->
+                        <Border x:Name="DuplicateWarningBorder" Background="#FFFBEB" BorderBrush="#F59E0B" BorderThickness="1.5" CornerRadius="{StaticResource CornerRadiusMedium}" Padding="16,12" Margin="0,0,0,16" Visibility="Collapsed">
+                            <StackPanel Orientation="Horizontal">
+                                <TextBlock Text="⚠️" FontSize="16" Margin="0,0,10,0" VerticalAlignment="Top"/>
+                                <StackPanel>
+                                    <TextBlock Text="同じ名前のメンバーがいます" FontSize="12.5" FontWeight="Bold" Foreground="#B45309"/>
+                                    <TextBlock Text="スタジオ内ではIdと呼び名は重複できません。該当カードの「✏️ Edit」から名前を変更してください(Idの重複はどちらかの削除・作り直しが必要です)。" FontSize="11" Foreground="#92400E" TextWrapping="Wrap" Margin="0,2,0,4"/>
+                                    <TextBlock x:Name="DuplicateWarningDetailText" FontSize="11" Foreground="#92400E" TextWrapping="Wrap"/>
+                                </StackPanel>
+                            </StackPanel>
+                        </Border>
+
+                        <!-- ============================================== -->
+                        <!-- セクションA: Leader / You ワイドバナー (A案完全再現) -->
+                        <!-- ============================================== -->
+                        <Border Background="{StaticResource PanelBackgroundBrush}" BorderBrush="{StaticResource PanelBorderBrush}" BorderThickness="1.5" CornerRadius="{StaticResource CornerRadiusLarge}" Padding="24,20" Margin="0,0,0,24">
+                            <Grid>
+                                <Grid.RowDefinitions>
+                                    <RowDefinition Height="Auto"/>
+                                    <RowDefinition Height="Auto"/>
+                                </Grid.RowDefinitions>
+
+                                <!-- ラベル (現在のスコープ種別) -->
+                                <TextBlock x:Name="BannerScopeKindText" Grid.Row="0" Text="TEAM" FontSize="11" FontWeight="Bold" Foreground="#64748B" Margin="0,0,0,14"/>
+
+                                <!-- リーダー＆スコープ本体行 -->
+                                <!-- G-8: Grid(Auto/*/Auto)からDockPanelに変更(見切れ防ぐため折り返し可能なWrapPanelを併用)。 -->
+                                <!-- 2026-10-03: リーダー(相棒)カードをメンバーカードより一回り大きい縦長カード(約260×400)にしたため、
+                                     左にチーム情報(スコープ名・メトリクス・ボタン)を縦に積み、右にリーダーカードを並べる。
+                                     横幅が足りないときは、コードビハインド(UpdateTeamBannerLayout)でリーダーカードを下の段へ移し、
+                                     さらに狭ければWrapPanelでカード同士も折り返す(見切れ防止)。 -->
+                                <Grid x:Name="TeamBannerBodyGrid" Grid.Row="1" SizeChanged="TeamBannerBodyGrid_SizeChanged">
+                                    <Grid.ColumnDefinitions>
+                                        <ColumnDefinition Width="*"/>
+                                        <ColumnDefinition Width="Auto"/>
+                                    </Grid.ColumnDefinitions>
+                                    <Grid.RowDefinitions>
+                                        <RowDefinition Height="Auto"/>
+                                        <RowDefinition Height="Auto"/>
+                                    </Grid.RowDefinitions>
+
+                                    <!-- 左: 名前、その下にメトリクス、さらに下にアクションボタン -->
+                                    <StackPanel x:Name="TeamBannerInfoPanel" Grid.Row="0" Grid.Column="0" VerticalAlignment="Top" HorizontalAlignment="Left" Margin="0,4,12,4">
+                                        <StackPanel Orientation="Horizontal">
+                                            <StackPanel VerticalAlignment="Center">
+                                                <StackPanel Orientation="Horizontal" Margin="0,0,0,4">
+                                                    <!-- 2026-10-03: 名前を17→25に拡大(約1.5倍)。長い名前は省略記号で切り詰め、バッジとの並びを維持 -->
+                                                    <TextBlock x:Name="LeaderBannerNameText" Text="チーム名" FontSize="25" FontWeight="Bold" Foreground="#0F172A" Margin="0,0,10,0" MaxWidth="260" TextTrimming="CharacterEllipsis" VerticalAlignment="Center" ToolTip="{Binding Text, RelativeSource={RelativeSource Self}}"/>
+                                                    <Border x:Name="LeaderBannerStatusBadgeBorder" Background="#DCFCE7" CornerRadius="10" Padding="8,2" VerticalAlignment="Center">
+                                                        <TextBlock x:Name="LeaderBannerStatusBadgeText" Text="Ready" FontSize="11" FontWeight="Bold" Foreground="#15803D"/>
+                                                    </Border>
+                                                </StackPanel>
+                                                <TextBlock x:Name="LeaderBannerRoleText" Text="説明またはフォルダパス" FontSize="12.5" Foreground="#64748B" MaxWidth="320" TextTrimming="CharacterEllipsis"/>
+                                            </StackPanel>
+                                        </StackPanel>
+
+                                        <!-- メトリクス統計 (2大メトリクス。名前の左端に揃える) -->
+                                        <WrapPanel Orientation="Horizontal" Margin="0,12,0,0">
+                                            <!-- Metric 1: 専門メンバー数 (内訳つき) -->
+                                            <StackPanel Margin="0,0,36,4">
+                                                <StackPanel Orientation="Horizontal" VerticalAlignment="Bottom">
+                                                    <TextBlock x:Name="MetricTotalMembersText" Text="0" FontSize="22" FontWeight="Bold" Foreground="#0F172A"/>
+                                                    <TextBlock Text=" 名" FontSize="13" FontWeight="SemiBold" Foreground="#64748B" VerticalAlignment="Bottom" Margin="2,0,0,3"/>
+                                                </StackPanel>
+                                                <TextBlock x:Name="MetricTotalMembersSubText" Text="専門メンバー (🦥0 / 🌟0)" FontSize="11" Foreground="#64748B" FontWeight="SemiBold"/>
+                                            </StackPanel>
+
+                                            <!-- Metric 2: 作業中 (Active) -->
+                                            <StackPanel Margin="0,0,20,4">
+                                                <StackPanel Orientation="Horizontal" VerticalAlignment="Bottom">
+                                                    <TextBlock x:Name="MetricActiveAgentsText" Text="0" FontSize="22" FontWeight="Bold" Foreground="#2563EB"/>
+                                                    <TextBlock Text=" 名" FontSize="13" FontWeight="SemiBold" Foreground="#2563EB" VerticalAlignment="Bottom" Margin="2,0,0,3"/>
+                                                </StackPanel>
+                                                <TextBlock x:Name="MetricActiveAgentsSubText" Text="作業中 (Active)" FontSize="11" Foreground="#64748B" FontWeight="SemiBold"/>
+                                            </StackPanel>
+                                        </WrapPanel>
+
+                                        <!-- アクションボタン (折り返し対応のためWrapPanel。名前の左端に揃える) -->
+                                        <WrapPanel Margin="0,16,0,0">
+                                            <Button x:Name="ImportTemplateButton" Content="📑 テンプレート追加" Style="{StaticResource StudioHeaderButton}" Margin="0,0,10,4" ToolTip="職種別テンプレート(IT開発/動画/デザイン等)から専門メンバーを一括追加" Click="ImportTemplateButton_Click"/>
+                                            <Button x:Name="ManageTeamButton" Content="Manage Team" Style="{StaticResource StudioHeaderButton}" Margin="0,0,0,4" Click="ManageTeamButton_Click"/>
+                                        </WrapPanel>
+
+                                        <!-- Git境界の警告(U-5): 独立Gitリポジトリのチーム選択時のみ、ボタンの下にインライン表示する(非表示時は余白も出ない) -->
+                                        <Border x:Name="GitIsolationInfoBox" Visibility="Collapsed" Background="{StaticResource GitInfoPopupBackgroundBrush}" BorderBrush="{StaticResource GitInfoPopupBorderBrush}" BorderThickness="1" CornerRadius="{StaticResource CornerRadiusMedium}" Padding="12,8" Margin="0,4,0,0" MaxWidth="360" HorizontalAlignment="Left">
+                                            <StackPanel>
+                                                <TextBlock Text="このチームフォルダは独立したGitリポジトリです" FontSize="11" FontWeight="Bold" Foreground="{StaticResource GitInfoPopupTitleBrush}" TextWrapping="Wrap"/>
+                                                <TextBlock Text="VSCode等でこのフォルダを直接開いて作業する場合、親ワークスペースのCLAUDE.md/GEMINI.mdはCLIから自動継承されません。" FontSize="10.5" Foreground="{StaticResource GitInfoPopupBodyBrush}" TextWrapping="Wrap" Margin="0,2,0,0"/>
+                                            </StackPanel>
+                                        </Border>
+                                    </StackPanel>
+
+                                    <!-- 右: リーダー(相棒)カード。1つのAIにつき1枚(中身はコードビハインドで生成)。
+                                         カードは左余白(16)と下余白(12)を持つため、パネル側の余白で打ち消して端をそろえる。
+                                         幅が足りないときは下の段(Row=1, Column=0〜1)へ移す(UpdateTeamBannerLayout)。 -->
+                                    <WrapPanel x:Name="LeaderCardsPanel" Grid.Row="0" Grid.Column="1" Orientation="Horizontal" VerticalAlignment="Center" HorizontalAlignment="Right" Margin="0,0,0,-12"/>
+                                </Grid>
+                            </Grid>
+                        </Border>
+
+                        <!-- ============================================== -->
+                        <!-- セクションB: メンバーカードグリッド (A案縦長カード) -->
+                        <!-- U-21: グループ(ワークスペース)選択時は配下チームごとにセクション見出しを
+                             付けてまとめて表示するため、単一WrapPanelではなく「見出し+WrapPanel」の
+                             セクションを縦に積むStackPanelとして構築する(中身はコードビハインドで生成)。 -->
+                        <!-- Dashboard選択時のみ表示: 全チーム横断の「稼働中・完了のメンバー」エリア(中身はコードビハインドで生成)。
+                             見出し・空表示の文言は DashboardActivityCollector の定数をコードビハインドで設定する。 -->
+                        <StackPanel x:Name="DashboardActivitySection" Visibility="Collapsed">
+                            <TextBlock x:Name="DashboardActivityTitleText" FontSize="13" FontWeight="Bold" Foreground="#334155" Margin="2,0,0,10"/>
+                            <WrapPanel x:Name="DashboardActivityCardsPanel"/>
+                            <Border x:Name="DashboardActivityEmptyBorder" Visibility="Collapsed" Background="{StaticResource PanelBackgroundBrush}" BorderBrush="{StaticResource PanelBorderBrush}" BorderThickness="1" CornerRadius="{StaticResource CornerRadiusLarge}" Padding="16,14">
+                                <TextBlock x:Name="DashboardActivityEmptyText" FontSize="12.5" Foreground="#94A3B8"/>
+                            </Border>
+                            <TextBlock x:Name="DashboardCommonMembersTitleText" FontSize="13" FontWeight="Bold" Foreground="#334155" Margin="2,20,0,10"/>
+                        </StackPanel>
+
+                        <!-- 初回起動時ウェルカム案内（ワークスペース0件の時のみ表示） -->
+                        <Border x:Name="WelcomeEmptyStatePanel" Visibility="Collapsed" Background="#1E293B" BorderBrush="#334155" BorderThickness="1" CornerRadius="{StaticResource CornerRadiusLarge}" Padding="32" MaxWidth="560" HorizontalAlignment="Center" Margin="0,40,0,40">
+                            <StackPanel HorizontalAlignment="Center">
+                                <TextBlock Text="🦥" FontSize="48" HorizontalAlignment="Center"/>
+                                <TextBlock Text="Sloth Studio へようこそ！" FontSize="20" FontWeight="Bold" Foreground="White" HorizontalAlignment="Center" Margin="0,12,0,8"/>
+                                <TextBlock Text="まずはあなたの作業フォルダ（プロジェクト）を登録しましょう。左下の「＋ ワークスペースを追加」ボタンを押すか、以下のボタンからフォルダを選択してください。" FontSize="13" Foreground="#94A3B8" TextWrapping="Wrap" TextAlignment="Center" LineHeight="20" Margin="0,0,0,20"/>
+                                <Button x:Name="WelcomeAddWorkspaceButton" Content="📁 最初のワークスペースを追加する" Style="{StaticResource WelcomeActionButton}" HorizontalAlignment="Center" Click="AddGroupButton_Click"/>
+                            </StackPanel>
+                        </Border>
+
+                        <StackPanel x:Name="MembersGridPanel" Margin="0,0,0,24"/>
+
+                        <!-- 空状態（メンバーが0件の時のガイド案内） -->
+                        <Border x:Name="EmptyStateBorder" Visibility="Collapsed" Background="{StaticResource PanelBackgroundBrush}" BorderBrush="{StaticResource PanelBorderBrush}" BorderThickness="1.5" CornerRadius="{StaticResource CornerRadiusLarge}" Padding="40" Margin="0,0,0,20">
+                            <StackPanel HorizontalAlignment="Center" VerticalAlignment="Center">
+                                <TextBlock Text="🦥" FontSize="44" HorizontalAlignment="Center" Margin="0,0,0,12"/>
+                                <TextBlock Text="まだサブエージェントが登録されていません" FontSize="16" FontWeight="Bold" Foreground="#475569" HorizontalAlignment="Center" Margin="0,0,0,4"/>
+                                <TextBlock Text="職種別テンプレートから一括登録するか、手動で新しいAIを登録してみましょう" FontSize="13" Foreground="#94A3B8" HorizontalAlignment="Center"/>
+                                <StackPanel Orientation="Horizontal" HorizontalAlignment="Center" Margin="0,18,0,0">
+                                    <Button x:Name="EmptyImportTemplateButton" Content="📑 職種別テンプレートから追加..." Style="{StaticResource StudioHeaderButton}" Margin="0,0,10,0" Click="ImportTemplateButton_Click"/>
+                                    <Button x:Name="EmptyAddMemberButton" Content="＋ 手動でメンバー追加" Style="{StaticResource StudioHeaderButton}" Click="EmptyAddMemberButton_Click"/>
+                                </StackPanel>
+                            </StackPanel>
+                        </Border>
+                    </StackPanel>
+                </ScrollViewer>
+            </DockPanel>
+        </Border>
+
+        <!-- 「コピーしました」等の一時表示(数秒で自動的に消える。操作の邪魔をしないようクリック不可) -->
+        <Border x:Name="TransientMessageBorder" Grid.Column="1" Visibility="Collapsed" IsHitTestVisible="False"
+                Panel.ZIndex="100" HorizontalAlignment="Center" VerticalAlignment="Bottom" Margin="0,0,0,32"
+                Background="#E60F172A" CornerRadius="{StaticResource CornerRadiusMedium}" Padding="18,10">
+            <Border.Effect>
+                <DropShadowEffect BlurRadius="12" ShadowDepth="2" Opacity="0.35" Color="Black"/>
+            </Border.Effect>
+            <TextBlock x:Name="TransientMessageText" FontSize="13" FontWeight="SemiBold" Foreground="White"/>
+        </Border>
+        </Grid>
+    </Grid>
+    </Border>
+</Window>

@@ -1,0 +1,93 @@
+<Window x:Class="AgentDeskApp.RuleImportDialog"
+        xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+        xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+        Title="ルールの相互移植 (Rule Sync &amp; Merge)" Height="520" Width="540"
+        WindowStartupLocation="CenterOwner" ResizeMode="NoResize"
+        Background="{DynamicResource MainBackgroundBrush}"
+        Foreground="{DynamicResource TextPrimaryBrush}"
+        FontFamily="Yu Gothic UI, Segoe UI, Meiryo">
+    <Window.Resources>
+        <ResourceDictionary>
+            <ResourceDictionary.MergedDictionaries>
+                <ResourceDictionary Source="Themes/PopupStyles.xaml"/>
+            </ResourceDictionary.MergedDictionaries>
+        </ResourceDictionary>
+    </Window.Resources>
+
+    <DockPanel Margin="22">
+        <!-- 下部アクションバー -->
+        <Border DockPanel.Dock="Bottom" Margin="0,16,0,0">
+            <Grid>
+                <TextBlock x:Name="CopyNoticeText" Text="✅ AI用プロンプトをクリップボードにコピーしました！" FontSize="11.5" FontWeight="SemiBold" Foreground="{StaticResource AccentGreenBrush}" VerticalAlignment="Center" Visibility="Collapsed"/>
+                <StackPanel Orientation="Horizontal" HorizontalAlignment="Right">
+                    <Button x:Name="ExecuteButton" Content="🔄 移植を実行する" Style="{StaticResource ForestPrimaryButtonStyle}" Margin="0,0,8,0" Click="ExecuteButton_Click"/>
+                    <Button Content="キャンセル" Click="CancelButton_Click"/>
+                </StackPanel>
+            </Grid>
+        </Border>
+
+        <!-- 上部ヘッダー -->
+        <Border DockPanel.Dock="Top" Margin="0,0,0,14">
+            <StackPanel>
+                <TextBlock x:Name="HeaderTitleText" Text="🔄 ルールの相互移植" FontSize="16" FontWeight="Bold" Foreground="{StaticResource TextPrimaryBrush}"/>
+                <TextBlock x:Name="HeaderDescText" Text="取り込み元のルール内容を、現在のファイルに反映します。" FontSize="11.5" Foreground="{StaticResource TextMutedBrush}" Margin="0,3,0,0"/>
+            </StackPanel>
+        </Border>
+
+        <!-- メイン設定コンテンツ -->
+        <StackPanel>
+            <!-- 移植方式の選択 -->
+            <Border Background="{StaticResource PanelBackgroundBrush}" BorderBrush="{StaticResource PanelBorderBrush}" BorderThickness="1" CornerRadius="{StaticResource CornerRadiusMedium}" Padding="14,12" Margin="0,0,0,10">
+                <StackPanel>
+                    <TextBlock Text="移植方式を選択してください:" FontSize="12" FontWeight="Bold" Foreground="{StaticResource TextPrimaryBrush}" Margin="0,0,0,8"/>
+
+                    <!-- 選択肢1: スマートマージ -->
+                    <RadioButton x:Name="SmartMergeRadio" GroupName="ImportMode" IsChecked="True" Margin="0,0,0,10">
+                        <StackPanel Margin="6,0,0,0">
+                            <TextBlock Text="🧠 スマートマージ (差分統合・おすすめ)" FontSize="12.5" FontWeight="Bold" Foreground="{StaticResource TextPrimaryBrush}"/>
+                            <TextBlock Text="既存の見出し(## )と重複しない新しいルールのみを、目印コメント付きで安全に追加します。" FontSize="11" Foreground="{StaticResource TextMutedBrush}" TextWrapping="Wrap" Margin="0,2,0,0"/>
+                        </StackPanel>
+                    </RadioButton>
+
+                    <!-- 選択肢2: 完全上書き -->
+                    <RadioButton x:Name="OverwriteRadio" GroupName="ImportMode">
+                        <StackPanel Margin="6,0,0,0">
+                            <TextBlock Text="⚡ 完全上書き (乗り換え用)" FontSize="12.5" FontWeight="Bold" Foreground="{StaticResource TextPrimaryBrush}"/>
+                            <TextBlock Text="現在の内容を相手の内容で完全に置き換えます。片方に完全に移行したい場合に便利です。" FontSize="11" Foreground="{StaticResource TextMutedBrush}" TextWrapping="Wrap" Margin="0,2,0,0"/>
+                        </StackPanel>
+                    </RadioButton>
+                </StackPanel>
+            </Border>
+
+            <!-- ⚠️ 注意アラート -->
+            <Border Background="#FFFBEB" BorderBrush="#FDE68A" BorderThickness="1" CornerRadius="{StaticResource CornerRadiusSmall}" Padding="10,8" Margin="0,0,0,10">
+                <Grid>
+                    <Grid.ColumnDefinitions>
+                        <ColumnDefinition Width="Auto"/>
+                        <ColumnDefinition Width="*"/>
+                    </Grid.ColumnDefinitions>
+                    <TextBlock Grid.Column="0" Text="⚠️" FontSize="14" Margin="0,0,8,0" VerticalAlignment="Top"/>
+                    <TextBlock Grid.Column="1" Text="見出しの表現違い（例:「作業方針」と「作業ルール」）による内容の重複や矛盾が発生する可能性があります。実行後、エディタ上で内容をご確認・整理の上で保存してください。" FontSize="11" Foreground="#92400E" TextWrapping="Wrap"/>
+                </Grid>
+            </Border>
+
+            <!-- 自動バックアップチェックボックス -->
+            <CheckBox x:Name="BackupCheckBox" Content="実行前に現在のファイルを自動バックアップする (.bak_日時)" IsChecked="True" FontSize="11.5" FontWeight="SemiBold" Foreground="{StaticResource TextPrimaryBrush}" Margin="4,0,0,12"/>
+
+            <!-- 🤖 AIハイブリッド連携 -->
+            <Border Background="{StaticResource MenuItemHighlightBrush}" BorderBrush="{StaticResource PopupBorderBrush}" BorderThickness="1" CornerRadius="{StaticResource CornerRadiusMedium}" Padding="12,10">
+                <Grid>
+                    <Grid.ColumnDefinitions>
+                        <ColumnDefinition Width="*"/>
+                        <ColumnDefinition Width="Auto"/>
+                    </Grid.ColumnDefinitions>
+                    <StackPanel Grid.Column="0" VerticalAlignment="Center" Margin="0,0,10,0">
+                        <TextBlock Text="🤖 AIにきれいに統合してもらう場合:" FontSize="11.5" FontWeight="Bold" Foreground="{StaticResource AccentGreenBrush}"/>
+                        <TextBlock Text="両ルールの重複や矛盾をAIに整理させたい場合は、統合依頼プロンプトをコピーしてチャット画面に貼り付けてください。" FontSize="10.5" Foreground="{StaticResource AccentGreenBrush}" TextWrapping="Wrap" Margin="0,2,0,0"/>
+                    </StackPanel>
+                    <Button x:Name="CopyAiPromptButton" Grid.Column="1" Content="📋 プロンプトをコピー" Padding="10,5" FontSize="11" VerticalAlignment="Center" Click="CopyAiPromptButton_Click"/>
+                </Grid>
+            </Border>
+        </StackPanel>
+    </DockPanel>
+</Window>
