@@ -3,8 +3,8 @@
 Claude Code と Gemini（Antigravity）のサブエージェントを、チーム単位で管理できる Windows デスクトップアプリです。
 「いま誰が動いているか」「誰が終わったか」を、カードでひと目で見える化します。
 
-<!-- TODO: スクリーンショット（メイン画面）。docs/images/ に画像を置いてから、ここに ![メイン画面](docs/images/main.png) の形で追加する -->
-<!-- TODO: スクリーンショット（作業中のカードと Dashboard） -->
+![メイン画面](docs/images/main.png)
+![作業中のカードと Dashboard](docs/images/working.png)
 
 ---
 
@@ -42,8 +42,6 @@ Claude Code と Gemini（Antigravity）のサブエージェントを、チー�
 
 1. 警告画面の **「詳細情報」** をクリックします。
 2. 表示された **「実行」** ボタンをクリックします。
-
-<!-- TODO: スクリーンショット（SmartScreen の警告画面と「詳細情報」→「実行」）。docs/images/ に配置 -->
 
 ### 初回起動の流れ
 
