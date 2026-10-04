@@ -1,4 +1,4 @@
-<#
+﻿<#
 .SYNOPSIS
     AgentDeskApp の自己完結型 (self-contained) Release ビルドを作成し、配布用zipにまとめるスクリプト。
 
@@ -51,19 +51,31 @@ if (-not (Test-Path $releaseDir)) {
     New-Item -ItemType Directory -Path $releaseDir -Force | Out-Null
 }
 
+# ビルド時の絶対パス（利用者環境に不要な作者のフォルダ構成）が exe に残らないよう、
+# リポジトリ直下を固定の仮想パス "/src" に置換する (PathMap)。
+# 末尾の区切り文字は付けず、Resolve-Path の結果を文字列化して使う。
+$pathMap = "$($repoRoot.Path)=/src"
+
 # 自己完結型・シングルファイルでのpublishを実行する
+# DebugType=none / DebugSymbols=false: 利用者に不要なPDB（絶対パスを含む）を出力しない
 dotnet publish $csprojPath `
     -c Release `
     -r win-x64 `
     --self-contained `
     -p:PublishSingleFile=true `
     -p:IncludeNativeLibrariesForSelfExtract=true `
+    -p:DebugType=none `
+    -p:DebugSymbols=false `
+    "-p:PathMap=$pathMap" `
     -o $publishDir
 
 if ($LASTEXITCODE -ne 0) {
     Write-Error "dotnet publish に失敗しました (終了コード: $LASTEXITCODE)"
     exit $LASTEXITCODE
 }
+
+# 念のため、PDBが publish 出力に残っていれば除去してからzip化する
+Get-ChildItem -Path $publishDir -Filter "*.pdb" -Recurse | Remove-Item -Force
 
 # 既存の同名zipがあれば上書きするため削除する
 if (Test-Path $zipPath) {
