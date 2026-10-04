@@ -13,6 +13,7 @@ public static class GroupRegistry
 
     /// <summary>
     /// 指定したCLAUDE.mdから「## グループ」セクション配下の箇条書き(- パス)を読み取る。
+    /// 見出しは「## グループ」と(前後の空白を除いて)完全一致する行のみを対象とし、「## グループ会社の方針」等は対象外。
     /// ファイルが無い、またはセクションが無い場合は空の一覧を返す。
     /// </summary>
     /// <param name="claudeMdPath">部のグローバルCLAUDE.mdの絶対パス。</param>
@@ -31,7 +32,7 @@ public static class GroupRegistry
         {
             var trimmed = line.Trim();
 
-            if (trimmed == SectionHeading || (trimmed.StartsWith("## グループ", StringComparison.Ordinal) && !trimmed.StartsWith("###", StringComparison.Ordinal)))
+            if (trimmed == SectionHeading)
             {
                 inSection = true;
                 continue;
@@ -81,7 +82,7 @@ public static class GroupRegistry
         var sectionStart = existingLines.FindIndex(l =>
         {
             var t = l.Trim();
-            return t == SectionHeading || (t.StartsWith("## グループ", StringComparison.Ordinal) && !t.StartsWith("###", StringComparison.Ordinal));
+            return t == SectionHeading;
         });
 
         var newSectionLines = new List<string> { SectionHeading };

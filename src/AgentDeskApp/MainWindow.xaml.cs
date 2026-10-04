@@ -3692,7 +3692,7 @@ public partial class MainWindow : Window
     {
         var result = MessageBox.Show(
             this,
-            $"ワークスペース「{group.DisplayName}」の登録をStudioから解除しますか？\n\n※フォルダ内のファイルは削除されず、Studioの管理一覧からのみ除外されます。",
+            $"ワークスペース「{group.DisplayName}」の登録をStudioから解除しますか？\n\n※フォルダ内のファイルは削除されず、Studioの管理一覧からのみ除外されます。\nなお、グローバルルール(~/.claude/CLAUDE.md、~/.gemini/GEMINI.md)の「## グループ」節からも外れます。",
             "ワークスペースの登録解除",
             MessageBoxButton.YesNo,
             MessageBoxImage.Question);

@@ -94,6 +94,20 @@ public static class SupportContent
         "有効にすると、次のファイルに記録されます(有効にしたときに作られます)。記録するのはメンバー名・状態・件数・短縮セッションIDのみで、会話内容は含みません。" +
         "無効に戻すときは false にするか、項目を削除します。";
 
+    private const string FilesHeading = "アプリが読み書きするファイル";
+    private const string FilesBody =
+        "【読むもの】\n" +
+        "・会話ログ(Claude Code: ~/.claude/projects、Gemini / Antigravity: ~/.gemini/antigravity/brain): 作業状態の検知に使います。「タスク履歴」画面は、プロンプトと応答の本文を読んで画面に表示します。表示するだけで、外部へは送りません。\n" +
+        "【書くもの】\n" +
+        "・各フォルダの .claude/agents(Claudeのメンバー定義)、.agents/skills(Geminiのメンバー定義)、CLAUDE.md / GEMINI.md\n" +
+        "・アプリの設定: settings.json(上記の場所)\n" +
+        "・グローバルルール(~/.claude/CLAUDE.md、~/.gemini/GEMINI.md): ワークスペースを追加・解除するたびに、ファイルが存在するときだけ、見出しが「## グループ」とちょうど一致する節を、登録中のワークスペースのパス一覧で書き換えます。「## グループ会社の方針」など、見出しが少しでも違う節は書き換えません。書き換えた結果は、改行がWindows標準(CRLF)になります。\n" +
+        "【その他】\n" +
+        "・ルール画面で保存するとき、対象ファイルと同じフォルダに <ファイル名>.bak_日時 のバックアップを作ります。\n" +
+        "・メンバーの追加・編集時に、アバター画像をメンバーの配置先へコピーします。\n" +
+        "・チーム作成時に、親ワークスペースの memory/AI_MEMORY.md(無ければひな形)と、チームの CLAUDE.md / GEMINI.md(無いときだけひな形)を作ります。\n" +
+        "・settings.json が壊れている(書き方の誤りなど)と、アプリは既定値で起動し、次にワークスペースの追加や設定の保存を行ったときに既定値のまま上書きします。手で編集する前にバックアップをおすすめします。";
+
     private const string CommandsHeading = "アプリが実行する外部コマンド";
     private const string CommandsBody =
         "【自動で実行するもの】\n" +
@@ -185,6 +199,7 @@ public static class SupportContent
             sections.Add(new SupportSection(DiagnosticLogHeading, DiagnosticLogBody, diagnosticLogPath));
         }
 
+        sections.Add(new SupportSection(FilesHeading, FilesBody));
         sections.Add(new SupportSection(CommandsHeading, CommandsBody));
         sections.Add(new SupportSection(HelpHeading, string.Empty, null, new[]
         {

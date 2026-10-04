@@ -112,6 +112,59 @@ public class GroupRegistryTests
         }
     }
 
+    /// <summary>「## グループ会社の方針」のような利用者自身の節は置き換えず、別に「## グループ」節を末尾へ新設する。</summary>
+    [Fact]
+    public void SaveGroups_グループ会社の方針の節は置き換えずに保持する()
+    {
+        var path = CreateTempFile("# ルール\n\n## グループ会社の方針\n- 親会社の承認を得る\n- 子会社へ共有する\n");
+
+        try
+        {
+            GroupRegistry.SaveGroups(path, ["C:\\Work"]);
+
+            var content = File.ReadAllText(path);
+            Assert.Contains("## グループ会社の方針", content);
+            Assert.Contains("- 親会社の承認を得る", content);
+            Assert.Contains("- 子会社へ共有する", content);
+            Assert.Equal(["C:\\Work"], GroupRegistry.LoadGroups(path));
+        }
+        finally
+        {
+            File.Delete(path);
+        }
+    }
+
+    /// <summary>「## グループ会社の方針」節と通常の「## グループ」節が併存するとき、後者だけが更新される。</summary>
+    [Fact]
+    public void SaveGroups_通常のグループ節だけが更新され会社の方針の節は残る()
+    {
+        var path = CreateTempFile("""
+            ## グループ会社の方針
+            - 方針A
+
+            ## グループ
+            - C:\Old
+
+            ## 別のセクション
+            残る本文。
+            """);
+
+        try
+        {
+            GroupRegistry.SaveGroups(path, ["C:\\New"]);
+
+            var content = File.ReadAllText(path);
+            Assert.Contains("- 方針A", content);
+            Assert.Contains("残る本文。", content);
+            Assert.DoesNotContain("C:\\Old", content);
+            Assert.Equal(["C:\\New"], GroupRegistry.LoadGroups(path));
+        }
+        finally
+        {
+            File.Delete(path);
+        }
+    }
+
     [Fact]
     public void RemoveGroup_指定したパスがセクションから除外される()
     {

@@ -96,10 +96,12 @@ Claude Code と Gemini（Antigravity）のサブエージェントを、チー�
 
 アプリ自体は、ネットワークに通信しません。会話内容を外部へ送ることもありません。
 
-### 読むもの（状態の検知のためだけに使います）
+### 読むもの
 
 - `%USERPROFILE%\.claude\projects` 内の会話ログ（Claude Code）
 - `%USERPROFILE%\.gemini\antigravity\brain` 内の会話ログ（Gemini / Antigravity）
+
+会話ログは、主に作業状態の検知に使います。ただし、「タスク履歴」画面は、これらの会話ログからプロンプトと応答の本文を読み、画面に表示します。表示するだけで、外部へ送ることはありません。
 
 ### 読み書きするもの
 
@@ -107,7 +109,12 @@ Claude Code と Gemini（Antigravity）のサブエージェントを、チー�
 - 各フォルダの `.agents/skills`（Gemini のメンバー定義）
 - 各フォルダの `CLAUDE.md` / `GEMINI.md`
 - グローバルルール: `~/.claude/CLAUDE.md`、`~/.gemini/GEMINI.md`
+  - ワークスペースを追加・解除するたびに、両ファイル（ファイルが存在するときのみ）の `## グループ` 節を、登録中のワークスペースの絶対パス一覧で書き換えます。見出しが `## グループ` とちょうど一致する節（前後の空白は除く）があれば、その節の箇条書きだけが置き換えられます。`## グループ会社の方針` のように見出しが少しでも違う節は書き換えません。一致する節が無いときは、末尾に `## グループ` 節を追加します。書き換えた結果は、改行コードが Windows 標準（CRLF）に統一されます。
 - アプリの設定: `%APPDATA%\AgentDeskApp\settings.json`
+- ルール画面で保存するときに作るバックアップ: 対象ファイルと同じフォルダの `<ファイル名>.bak_日時`
+- エージェントの画像: メンバーの追加・編集時に、同梱のアバター画像や選んだ画像を、メンバーの配置先（`.claude/agents`、`.agents/skills/<ID>`）へコピーします（`<ID>.jpg` や `avatar.jpg` など）。
+- チーム作成時: 親ワークスペースの `memory/AI_MEMORY.md`（無ければひな形を作成）と、チームの `CLAUDE.md` / `GEMINI.md`（無いときだけ、ひな形を作成）
+- 診断ログを有効にしたときだけ: `%APPDATA%\AgentDeskApp\logs`
 
 ### 実行する外部コマンド
 
@@ -126,6 +133,8 @@ Claude Code と Gemini（Antigravity）のサブエージェントを、チー�
 ```
 
 出力先は `%APPDATA%\AgentDeskApp\logs\agentdesk-diagnostic.log` です。記録するのは、メンバー名・状態・件数・短縮したセッションIDだけで、会話内容は含みません。無効に戻すときは `false` にするか、項目を削除します。
+
+> `settings.json` を手で編集するときは、書き方の誤り（末尾のカンマなど）にご注意ください。ファイルが壊れていると、アプリは既定値で起動し、次にワークスペースの追加や設定の保存を行ったときに、既定値のまま上書きされます。編集前にバックアップを取っておくことをおすすめします。
 
 ---
 
@@ -157,7 +166,7 @@ dotnet test src/AgentDeskApp.Tests
 ./scripts/build_release_zip.ps1 -Version "0.9.0"
 ```
 
-自己完結型（win-x64・シングルファイル）で `dotnet publish` し、`release/AgentDeskApp-v<バージョン>-win-x64.zip` を作ります。`-Version` を省略すると `1.0.0` になるので、ベータ版では指定してください。
+自己完結型（win-x64・シングルファイル）で `dotnet publish` し、`release/AgentDeskApp-v<バージョン>-win-x64.zip` を作ります。`-Version` を省略すると `0.9.0` になります。別のバージョンにしたいときは指定してください。
 
 ---
 
@@ -183,5 +192,5 @@ MIT ライセンスです。詳しくは [LICENSE](LICENSE) を参照してく�
 - **What it is**: A Windows desktop app that manages Claude Code and Gemini (Antigravity) subagents as teams, and shows with cards who is working and who has finished.
 - **Requirements**: Windows 10/11 (64-bit). The release zip is self-contained (no .NET install needed); building from source requires the .NET 10 SDK. Detection works when `claude` or `agy` is installed.
 - **Quick start**: Download the zip, extract it, and run `AgentDeskApp.exe`. If SmartScreen appears, click "More info" then "Run anyway".
-- **Known limitations**: Members with the same ID in multiple teams share their working state; Gemini detection is per conversation; the sway animation is shown for about 3 seconds at minimum. This is a beta, so please report issues on [GitHub Issues](https://github.com/SlothStudioAI/AgentDeskApp/issues). The app itself makes no network connections.
+- **Known limitations**: Members with the same ID in multiple teams share their working state; Gemini detection is per conversation; the sway animation is shown for about 3 seconds at minimum. This is a beta, so please report issues on [GitHub Issues](https://github.com/SlothStudioAI/AgentDeskApp/issues). The app itself makes no network connections. The task history screen displays prompts and replies read from local conversation logs (never sent anywhere), and adding or removing a workspace rewrites the section whose heading is exactly `## グループ` (workspace paths, saved with CRLF line endings; sections with any other heading, such as `## グループ会社の方針`, are left untouched, and a new section is appended if none matches) in your global `~/.claude/CLAUDE.md` and `~/.gemini/GEMINI.md` if they exist, so back up important files first.
 - **License**: MIT. Unofficial tool, not affiliated with Anthropic or Google ("AS IS"). The app edits agent definitions (`.claude/agents`, `.agents/skills`) and rule files (`CLAUDE.md`, `GEMINI.md`, including `~/.claude/CLAUDE.md` and `~/.gemini/GEMINI.md`), so please back up anything important first.

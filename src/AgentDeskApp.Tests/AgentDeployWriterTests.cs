@@ -96,6 +96,58 @@ public sealed class AgentDeployWriterTests : IDisposable
     }
 
     [Fact]
+    public void Write_配置先変更でSKILLmdだけならスキルフォルダごと消え警告は空()
+    {
+        WriteAll(AgentDeployWriter.Plan(ClaudeDir, SkillsDir, "helper", AgentEngineKind.Shared));
+        var warnings = AgentDeployWriter.Write(
+            AgentDeployWriter.Plan(ClaudeDir, SkillsDir, "helper", AgentEngineKind.Claude),
+            ClaudeDir, SkillsDir, "helper", "説明", "Read", "sonnet", "flash", null, "本文", "ヘルパー", null, true);
+        Assert.Empty(warnings);
+        Assert.False(Directory.Exists(Path.Combine(SkillsDir, "helper")));
+    }
+
+    [Fact]
+    public void Write_配置先変更で追加ファイルがあればSKILLmdだけ消えフォルダと追加ファイルは残る()
+    {
+        WriteAll(AgentDeployWriter.Plan(ClaudeDir, SkillsDir, "helper", AgentEngineKind.Shared));
+        var skillDir = Path.Combine(SkillsDir, "helper");
+        Directory.CreateDirectory(Path.Combine(skillDir, "scripts"));
+        File.WriteAllText(Path.Combine(skillDir, "scripts", "run.ps1"), "x");
+        File.WriteAllText(Path.Combine(skillDir, "avatar.png"), "img");
+
+        var warnings = AgentDeployWriter.Write(
+            AgentDeployWriter.Plan(ClaudeDir, SkillsDir, "helper", AgentEngineKind.Claude),
+            ClaudeDir, SkillsDir, "helper", "説明", "Read", "sonnet", "flash", null, "本文", "ヘルパー", null, true);
+
+        Assert.Empty(warnings);
+        Assert.False(File.Exists(Path.Combine(skillDir, "SKILL.md")));
+        Assert.False(File.Exists(Path.Combine(skillDir, "avatar.png")));
+        Assert.True(File.Exists(Path.Combine(skillDir, "scripts", "run.ps1")));
+    }
+
+    [Fact]
+    public void Write_SKILLmdを削除できないときは警告を返しフォルダを残す()
+    {
+        WriteAll(AgentDeployWriter.Plan(ClaudeDir, SkillsDir, "helper", AgentEngineKind.Shared));
+        var skillFile = Path.Combine(SkillsDir, "helper", "SKILL.md");
+        File.SetAttributes(skillFile, FileAttributes.ReadOnly);
+        try
+        {
+            var warnings = AgentDeployWriter.Write(
+                AgentDeployWriter.Plan(ClaudeDir, SkillsDir, "helper", AgentEngineKind.Claude),
+                ClaudeDir, SkillsDir, "helper", "説明", "Read", "sonnet", "flash", null, "本文", "ヘルパー", null, true);
+
+            Assert.NotEmpty(warnings);
+            Assert.Contains(warnings, w => w.Contains("SKILL.md"));
+            Assert.True(File.Exists(skillFile));
+        }
+        finally
+        {
+            File.SetAttributes(skillFile, FileAttributes.Normal);
+        }
+    }
+
+    [Fact]
     public void Write_removeUndeployedSideがfalseなら配置先外の既存定義を残す()
     {
         WriteAll(AgentDeployWriter.Plan(ClaudeDir, SkillsDir, "helper", AgentEngineKind.Shared));

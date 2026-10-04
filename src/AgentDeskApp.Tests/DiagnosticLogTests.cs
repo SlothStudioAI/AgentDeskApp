@@ -136,9 +136,9 @@ public class DiagnosticLogTests : IDisposable
         var with = SupportContent.Build(new Version(0, 9, 0), @"C:\x\settings.json", @"C:\x\logs\d.log");
         var without = SupportContent.Build(new Version(0, 9, 0), @"C:\x\settings.json");
 
-        Assert.Equal(6, with.Count);
+        Assert.Equal(7, with.Count);
         Assert.Contains(with, s => s.CopyableText == @"C:\x\logs\d.log");
-        Assert.Equal(5, without.Count);
+        Assert.Equal(6, without.Count);
     }
 
     [Theory]

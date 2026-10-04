@@ -632,9 +632,20 @@ public partial class AgentEditWindow : Window
                 _ => AgentEngineKind.Claude,
             };
             var plan = AgentDeployWriter.Plan(claudeDir, geminiSkillsDir, safeName, engine);
-            AgentDeployWriter.Write(
+            var deployWarnings = AgentDeployWriter.Write(
                 plan, claudeDir, geminiSkillsDir, safeName, description, tools, model, geminiModel,
                 color, body, displayName, avatarFileName, removeUndeployedSide: true);
+
+            if (deployWarnings.Count > 0)
+            {
+                // 保存自体は成功しているため、削除できなかった旧配置先のファイルだけを知らせる
+                MessageBox.Show(
+                    this,
+                    "保存しました。ただし、変更前の配置先の一部を削除できませんでした。\n" + string.Join("\n", deployWarnings),
+                    "一部削除できませんでした",
+                    MessageBoxButton.OK,
+                    MessageBoxImage.Warning);
+            }
 
             Saved = true;
             Close();

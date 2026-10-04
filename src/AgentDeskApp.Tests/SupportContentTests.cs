@@ -49,7 +49,7 @@ public class SupportContentTests
     {
         var sections = SupportContent.Build(new Version(0, 9, 0, 0), @"C:\x\settings.json");
 
-        Assert.Equal(5, sections.Count);
+        Assert.Equal(6, sections.Count);
         Assert.All(sections, s => Assert.False(string.IsNullOrWhiteSpace(s.Heading)));
         Assert.Contains("バージョン 0.9.0", sections[0].Body);
         Assert.Equal(@"C:\x\settings.json", sections.Single(s => s.CopyableText is not null).CopyableText);
@@ -123,5 +123,28 @@ public class SupportContentTests
         Assert.Contains("外部へ通信しません", body);
         // 定期実行があるため、「押さない限り自動では実行しない」という断定は含めない
         Assert.DoesNotContain("押さない限り自動では実行しません", body);
+    }
+
+    /// <summary>読み書きするファイルの節に、読む・書く・その他の区分と主要な対象、グローバルルールの完全一致の説明が含まれる。</summary>
+    [Fact]
+    public void Build_読み書きするファイルの節に主要な対象を含む()
+    {
+        var sections = SupportContent.Build(new Version(0, 9, 0, 0), null);
+        var body = sections.Single(s => s.Heading == "アプリが読み書きするファイル").Body;
+
+        Assert.Contains("【読むもの】", body);
+        Assert.Contains("【書くもの】", body);
+        Assert.Contains("【その他】", body);
+        Assert.Contains("タスク履歴", body);
+        Assert.Contains("外部へは送りません", body);
+        Assert.Contains(".claude/agents", body);
+        Assert.Contains(".agents/skills", body);
+        Assert.Contains("~/.claude/CLAUDE.md", body);
+        Assert.Contains("~/.gemini/GEMINI.md", body);
+        Assert.Contains("「## グループ」とちょうど一致", body);
+        Assert.Contains("CRLF", body);
+        Assert.Contains(".bak_日時", body);
+        Assert.Contains("memory/AI_MEMORY.md", body);
+        Assert.Contains("既定値", body);
     }
 }

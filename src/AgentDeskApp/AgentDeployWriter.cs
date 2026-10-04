@@ -80,6 +80,8 @@ public static class AgentDeployWriter
     /// <summary>
     /// 計画に従って定義を書き出す。配置先に含まれない側の既存定義は、
     /// <paramref name="removeUndeployedSide"/>がtrueのときだけ削除する(編集画面で配置先を変えた場合の整理)。
+    /// Gemini側はスキルフォルダを再帰削除せず、アプリ管理のファイルだけを消して、空になったときだけフォルダを消す
+    /// (scripts/ などの追加ファイルは残る)。
     /// </summary>
     /// <param name="plan">書き出し計画(<see cref="Plan"/>の結果)。</param>
     /// <param name="claudeDir">.claude/agentsフォルダ(計画外側の整理に使う)。</param>
@@ -94,7 +96,8 @@ public static class AgentDeployWriter
     /// <param name="displayName">表示名。</param>
     /// <param name="avatarFileName">frontmatterのavatar値(書かない場合はnull)。</param>
     /// <param name="removeUndeployedSide">配置先に含まれない側の既存定義を削除するか。</param>
-    public static void Write(
+    /// <returns>削除できなかったGemini側ファイル/フォルダの警告一覧(問題がなければ空)。</returns>
+    public static IReadOnlyList<string> Write(
         AgentDeployPlan plan,
         string claudeDir,
         string geminiSkillsDir,
@@ -109,6 +112,7 @@ public static class AgentDeployWriter
         string? avatarFileName,
         bool removeUndeployedSide)
     {
+        var warnings = new List<string>();
         if (plan.ClaudeFilePath is not null)
         {
             AgentDefinitionLoader.Save(
@@ -134,18 +138,60 @@ public static class AgentDeployWriter
         }
         else if (removeUndeployedSide)
         {
-            var skillDir = Path.Combine(geminiSkillsDir, id);
-            if (Directory.Exists(skillDir))
+            RemoveGeminiSkill(Path.Combine(geminiSkillsDir, id), id, warnings);
+        }
+
+        return warnings;
+    }
+
+    /// <summary>
+    /// Gemini側スキルフォルダの整理。再帰削除はせず、アプリが管理するファイル(SKILL.mdと、アプリが書き出すアバター画像
+    /// {id}.ext / avatar.ext)だけを消し、フォルダが空になったときだけフォルダを削除する。
+    /// scripts/ など利用者が追加したファイルが残っていれば、フォルダごと残す。削除に失敗したものは警告として記録する。
+    /// </summary>
+    /// <param name="skillDir">スキルフォルダ(.agents/skills/{id})。</param>
+    /// <param name="id">エージェントの識別子。</param>
+    /// <param name="warnings">削除できなかったものの説明を追加する一覧。</param>
+    private static void RemoveGeminiSkill(string skillDir, string id, List<string> warnings)
+    {
+        if (!Directory.Exists(skillDir))
+        {
+            return;
+        }
+
+        var managed = new List<string> { Path.Combine(skillDir, GeminiSkillFileName) };
+        foreach (var ext in TemplateAvatarExtensions)
+        {
+            managed.Add(Path.Combine(skillDir, id + ext));
+            managed.Add(Path.Combine(skillDir, GeminiStandardAvatarBaseName + ext));
+        }
+
+        foreach (var file in managed)
+        {
+            try
             {
-                try
+                if (File.Exists(file))
                 {
-                    Directory.Delete(skillDir, recursive: true);
-                }
-                catch
-                {
-                    // 削除失敗時はスキップ
+                    File.Delete(file);
                 }
             }
+            catch (Exception ex)
+            {
+                warnings.Add($"{file} を削除できませんでした({ex.Message})");
+            }
+        }
+
+        try
+        {
+            // 空のときだけ削除する(追加ファイルがあれば残す)
+            if (!Directory.EnumerateFileSystemEntries(skillDir).Any())
+            {
+                Directory.Delete(skillDir, recursive: false);
+            }
+        }
+        catch (Exception ex)
+        {
+            warnings.Add($"{skillDir} を削除できませんでした({ex.Message})");
         }
     }
 
